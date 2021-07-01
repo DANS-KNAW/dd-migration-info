@@ -42,7 +42,7 @@ class DdMigrationInfoServlet(app: DdMigrationInfoApp,
     val datasetId = getDatasetId
     app.loadBasicFileMetasForDataset(datasetId).map(_ => Ok(s"Records added for dataset $datasetId"))
       .doIfFailure {
-        case NonFatal(e) => logger.warn(s"Exception when creating DataFile records for dataset $datasetId")
+        case NonFatal(e) => logger.warn(s"Exception when creating DataFile records for dataset $datasetId", e)
       }
       .recover {
         case e: DataverseException if e.status == 404 => NotFound(s"No such dataset: ${ datasetId }")
@@ -65,11 +65,14 @@ class DdMigrationInfoServlet(app: DdMigrationInfoApp,
   get("/datasets/:id/seq/:seqNr/basic-file-metas") {
     val datasetId = getDatasetId
     val seqNr = params("seqNr").toInt
+    debug(s"Getting basic-file-metas for dataset = ${ datasetId } seqNr = $seqNr")
     app.getBasicFileMetasForDatasetVersion(datasetId, seqNr)
       .map {
         dfs =>
           if (dfs.nonEmpty) Ok(Serialization.writePretty(dfs))
           else NotFound()
-      }.get
+      }.doIfFailure {
+      case NonFatal(e) => logger.error("Error retrieving BasicFileMetas for dataset", e)
+    }.get
   }
 }

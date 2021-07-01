@@ -13,7 +13,7 @@ servers:
   - url: 'https://dar.dans.knaw.nl'
     description: Local test VM for Data Station Archaeology
   - url: 'https://dss.dans.knaw.nl'
-    description: Local test VM for Data Station Social Sciences
+    description: Local test VM for Data Station SSH
 
 paths:
   /:

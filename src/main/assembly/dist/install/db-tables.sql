@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS basic_file_metadata (
     directory_label VARCHAR(1000),
     mime_type VARCHAR(255) NOT NULL,
     sha1_checksum CHAR(40) NOT NULL,
-    file_size BIGINT NOT NULL,
     PRIMARY KEY (storage_identifier, dataset_doi, version_sequence_number));
 
 GRANT INSERT, SELECT, UPDATE, DELETE ON basic_file_metadata TO dd_migration_info;

@@ -15,11 +15,11 @@
  */
 package nl.knaw.dans.dd.migrationinfo
 
-import nl.knaw.dans.lib.dataverse.model.file.prestaged.DataFile
+import nl.knaw.dans.lib.dataverse.model.file.prestaged.PrestagedFile
 
 case class BasicFileMeta(label: String,
                          directoryLabel: Option[String],
                          versionSequenceNumber: Int,
-                         dataFile: DataFile)
+                         prestagedFile: PrestagedFile)
 
 
