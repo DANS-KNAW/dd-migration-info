@@ -85,12 +85,12 @@ components:
         type: string
       required: true
 
-    SequenceNumber:
+    VersionSequenceNumber:
       description: Sequence number of a dataset version. This is a 1-based number that determines the
         where a dataset version appears in the version history. It is not the same as Dataverse version
         number because the sequence number does not distinguish between major and minor updates.
       in: path
-      name: sequenceNumber
+      name: versionSequenceNumber
       schema:
         type: integer
       required: true
@@ -113,12 +113,12 @@ components:
           type: string
         directoryLabel:
           type: string
-        datasetSequenceNumber:
+        versionSequenceNumber:
           type: string
-        dataFile:
-          $ref: '#/components/schemas/DataFile'
+        prestagedFile:
+          $ref: '#/components/schemas/PrestagedFile'
 
-    DataFile:
+    PrestagedFile:
       type: object
       properties:
         storageIdentifier:
@@ -129,8 +129,14 @@ components:
           type: string
         checksum:
           $ref: "#/components/schemas/Checksum"
-        fileSize:
-          type: integer
+        categories:
+          type: array
+            items:
+              type: string
+        restrict:
+          type: boolean
+        forceReplace:
+          type: boolean
 
     Checksum:
       type: object
