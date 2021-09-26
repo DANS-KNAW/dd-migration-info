@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2021 DANS - Data Archiving and Networked Services (info@dans.knaw.nl)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
