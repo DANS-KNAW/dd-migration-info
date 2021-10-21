@@ -6,7 +6,7 @@ Migration info service
 SYNOPSIS
 --------
 
-    dd-migration-info run-service
+    dd-migration-info { run-service | load-from-dataverse }
 
 
 DESCRIPTION
@@ -21,6 +21,10 @@ ARGUMENTS
 
        -h, --help      Show help message
        -v, --version   Show version of this program
+
+    Subcommand: load-from-dataverse - Loads all records from the configured Dataverse instance
+       -h, --help   Show help message
+    ---
 
     Subcommand: run-service - Starts DD Migration Info as a daemon that services HTTP requests
        -h, --help   Show help message

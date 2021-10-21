@@ -40,7 +40,7 @@ object Command extends App with DebugEnhancedLogging {
   private def runSubcommand(app: DdMigrationInfoApp): Try[FeedBackMessage] = {
     commandLine.subcommand
       .collect {
-//      case subcommand1 @ subcommand.subcommand1 => // handle subcommand1
+        case commandLine.loadFromDataverse  => app.loadBasicFileMetasForDataverse().map(_ => "Loaded basic file metas")
 //      case None => // handle command line without subcommands
         case commandLine.runService => runAsService(app)
       }

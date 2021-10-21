@@ -26,7 +26,7 @@ class CommandLineOptions(args: Array[String], configuration: Configuration) exte
   val description: String = s"""Migration info service"""
   val synopsis: String =
     s"""
-       |  $printedName run-service
+       |  $printedName { run-service | load-from-dataverse }
        |  """.stripMargin
 
   version(s"$printedName v${ configuration.version }")
@@ -40,6 +40,12 @@ class CommandLineOptions(args: Array[String], configuration: Configuration) exte
        |
        |Options:
        |""".stripMargin)
+
+  val loadFromDataverse = new Subcommand("load-from-dataverse") {
+    descr("Loads all records from the configured Dataverse instance")
+    footer(SUBCOMMAND_SEPARATOR)
+  }
+  addSubcommand(loadFromDataverse)
 
   val runService = new Subcommand("run-service") {
     descr(
