@@ -62,9 +62,12 @@ class DdMigrationInfoApp(configuration: Configuration) extends DebugEnhancedLogg
   private def getDoisOfPublishedDatasets: Try[List[String]] = {
     val dois = ListBuffer[String]()
     var maybeNextDois: Try[List[String]] = null
+    var start = 0
+    val perPage = 100
     do {
-      maybeNextDois = getDoisFromSearchResult(dataverse.search().find("publicationStatus:\"Published\"", start = 0, perPage = 100))
+      maybeNextDois = getDoisFromSearchResult(dataverse.search().find("publicationStatus:\"Published\"", start = start, perPage = perPage))
       maybeNextDois.foreach(dois.appendAll)
+      start += perPage
     } while (maybeNextDois.map(_.nonEmpty).getOrElse(false))
     if (maybeNextDois.isFailure) maybeNextDois
     else Try { dois.toList }
