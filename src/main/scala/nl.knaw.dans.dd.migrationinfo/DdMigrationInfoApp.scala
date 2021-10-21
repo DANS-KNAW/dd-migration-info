@@ -15,10 +15,11 @@
  */
 package nl.knaw.dans.dd.migrationinfo
 
-import nl.knaw.dans.lib.dataverse.DataverseInstance
 import nl.knaw.dans.lib.dataverse.model.DataverseItem
 import nl.knaw.dans.lib.dataverse.model.dataset.DatasetVersion
 import nl.knaw.dans.lib.dataverse.model.file.prestaged.{ Checksum, PrestagedFile }
+import nl.knaw.dans.lib.dataverse.model.search.{ DatasetResultItem, SearchResult }
+import nl.knaw.dans.lib.dataverse.{ DataverseInstance, DataverseResponse }
 import nl.knaw.dans.lib.error._
 import nl.knaw.dans.lib.logging.DebugEnhancedLogging
 import resource.managed
@@ -40,9 +41,16 @@ class DdMigrationInfoApp(configuration: Configuration) extends DebugEnhancedLogg
   database.initConnectionPool()
   logger.info("Database connection initialized.")
 
+  def loadBasicFileMetasForDataverse(): Try[Unit] = {
+    trace(())
+    for {
+      dois <- getDoisOfPublishedDatasets
+      _ <- dois.map(loadBasicFileMetasForDataset).collectResults
+    } yield ()
+  }
+
   def loadBasicFileMetasForDataset(datasetDoi: String): Try[Unit] = {
     trace(datasetDoi)
-
     for {
       r <- dataverse.dataset(datasetDoi).viewAllVersions()
       vs <- r.data
@@ -51,17 +59,23 @@ class DdMigrationInfoApp(configuration: Configuration) extends DebugEnhancedLogg
     } yield ()
   }
 
-  def loadBasicFileMetasForDataverse(): Try[Unit] = {
-    trace(())
+  private def getDoisOfPublishedDatasets: Try[List[String]] = {
+    val dois = ListBuffer[String]()
+    var maybeNextDois: Try[List[String]] = null
+    do {
+      maybeNextDois = getDoisFromSearchResult(dataverse.search().find("publicationStatus:\"Published\"", start = 0, perPage = 100))
+      maybeNextDois.foreach(dois.appendAll)
+    } while (maybeNextDois.map(_.nonEmpty).getOrElse(false))
+    if (maybeNextDois.isFailure) maybeNextDois
+    else Try { dois.toList }
+  }
 
+  private def getDoisFromSearchResult(maybeSearchResponse: Try[DataverseResponse[SearchResult]]): Try[List[String]] = {
     for {
-      r <- dataverse.dataverse("root").contents()
-      items <- r.data
-      _ <- items
-        .filter(_.`type` == "dataset")
-        .map(getDoiFromContentItem)
-        .map(loadBasicFileMetasForDataset).collectResults
-    } yield ()
+      r <- maybeSearchResponse
+      searchResult <- r.data
+      dois = searchResult.items.map(_.asInstanceOf[DatasetResultItem]).map(_.globalId)
+    } yield dois
   }
 
   private def getDoiFromContentItem(item: DataverseItem): String = {
