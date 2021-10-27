@@ -15,7 +15,6 @@
  */
 package nl.knaw.dans.dd.migrationinfo
 
-import nl.knaw.dans.lib.dataverse.model.DataverseItem
 import nl.knaw.dans.lib.dataverse.model.dataset.DatasetVersion
 import nl.knaw.dans.lib.dataverse.model.file.prestaged.{ Checksum, PrestagedFile }
 import nl.knaw.dans.lib.dataverse.model.search.{ DatasetResultItem, SearchResult }
@@ -66,6 +65,8 @@ class DdMigrationInfoApp(configuration: Configuration) extends DebugEnhancedLogg
     val perPage = 100
     do {
       maybeNextDois = getDoisFromSearchResult(dataverse.search().find("publicationStatus:\"Published\"", start = start, perPage = perPage))
+      logger.info(s"Retrieved results page with offset $start")
+      debug(s"maybeNextDois = $maybeNextDois")
       maybeNextDois.foreach(dois.appendAll)
       start += perPage
     } while (maybeNextDois.map(_.nonEmpty).getOrElse(false))
@@ -79,17 +80,6 @@ class DdMigrationInfoApp(configuration: Configuration) extends DebugEnhancedLogg
       searchResult <- r.data
       dois = searchResult.items.map(_.asInstanceOf[DatasetResultItem]).map(_.globalId)
     } yield dois
-  }
-
-  private def getDoiFromContentItem(item: DataverseItem): String = {
-    val errors = new ListBuffer[String]()
-
-    if (item.protocol.isEmpty) errors.append("has no protocol")
-    if (item.authority.isEmpty) errors.append("has no authority")
-    if (item.identifier.isEmpty) errors.append("has no identifier")
-
-    if (errors.nonEmpty) throw new IllegalArgumentException(s"Item $item has no valid persistent identifier: ${ errors.mkString(", ") }")
-    else s"${ item.protocol.get }:${ item.authority.get }/${ item.identifier.get }"
   }
 
   private def collectBasicFileMetas(datasetVersions: List[DatasetVersion]): Try[List[BasicFileMeta]] = Try {
@@ -151,6 +141,8 @@ class DdMigrationInfoApp(configuration: Configuration) extends DebugEnhancedLogg
       .recoverWith {
         case e: SQLException if e.getMessage.toLowerCase contains "unique constraint" =>
           Failure(BasicFileMetaAlreadyStoredException(basicFileMeta))
+        case e => logger.error(s"Could not save basic file meta for doi =  $datasetDoi seqNr = ${basicFileMeta.versionSequenceNumber}", e)
+          Failure(e)
       }
   }
 
