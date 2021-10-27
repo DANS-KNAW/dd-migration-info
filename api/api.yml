@@ -1,0 +1,142 @@
+openapi: 3.0.0
+info:
+  title: Migration Info API
+  version: 1.0.0
+  description: |
+    This document specifies the Migration Info API. It provides access to a database that keeps track of information
+    about the migration from EASY to a Data Station.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: 'https://dar.dans.knaw.nl'
+    description: Local test VM for Data Station Archaeology
+  - url: 'https://dss.dans.knaw.nl'
+    description: Local test VM for Data Station SSH
+
+paths:
+  /:
+    get:
+      summary: Returns a description of the service.
+      responses:
+        200:
+          description: Description of the service
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: A plain text, human readable description of the service
+                example: |
+                  Migration Info Service is running.
+
+
+  /datasets/{datasetId}/actions/load-from-dataverse:
+    parameters:
+      - $ref: "#/components/parameters/DatasetIdentifier"
+      - $ref: "#/components/parameters/PersistentIdentifier"
+    post:
+      summary: Adds basic file metadata for the unique data files in the specified dataset
+      responses:
+        200:
+          description: OK. Added data file records
+        404:
+          description: Not Found. Could not find the specified dataset
+
+  /datasets/{datasetId}/seq/{sequenceNumber}/basic-file-metas:
+    parameters:
+      - $ref: "#/components/parameters/DatasetIdentifier"
+      - $ref: "#/components/parameters/SequenceNumber"
+      - $ref: "#/components/parameters/PersistentIdentifier"
+    get:
+      summary: Retrieves the basic file metadata from the specified dataset version
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BasicFileMeta'
+        404:
+          description: Not Found. No records for specified Dataset could be found.
+
+  /datasets/actions/load-from-dataverse:
+    post:
+      summary: Loads basic file metadata for all datasets in the configured dataverse
+      responses:
+        201:
+          description: Created.
+        400:
+          description: Bad Request. Configured dataverse could not be found.
+
+components:
+
+  parameters:
+
+    DatasetIdentifier:
+      description:
+        Database ID of the dataset or the string `:persistentId`to indicate that a DOI is
+        specified in the query parameter `persistentId`
+      in: path
+      name: datasetId
+      schema:
+        type: string
+      required: true
+
+    SequenceNumber:
+      description: Sequence number of a dataset version. This is a 1-based number that determines the
+        where a dataset version appears in the version history. It is not the same as Dataverse version
+        number because the sequence number does not distinguish between major and minor updates.
+      in: path
+      name: sequenceNumber
+      schema:
+        type: integer
+      required: true
+
+    PersistentIdentifier:
+      description: The DOI of the dataset
+      in: query
+      name: persistentId
+      schema:
+        type: string
+      required: false
+
+
+  schemas:
+
+    BasicFileMeta:
+      type: object
+      properties:
+        label:
+          type: string
+        directoryLabel:
+          type: string
+        datasetSequenceNumber:
+          type: string
+        dataFile:
+          $ref: '#/components/schemas/DataFile'
+
+    DataFile:
+      type: object
+      properties:
+        storageIdentifier:
+          type: string
+        fileName:
+          type: string
+        mimeType:
+          type: string
+        checksum:
+          $ref: "#/components/schemas/Checksum"
+        fileSize:
+          type: integer
+
+    Checksum:
+      type: object
+      properties:
+        "@type":
+          type: string
+        "@value":
+          type: string
+
